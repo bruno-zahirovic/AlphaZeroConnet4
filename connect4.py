@@ -37,11 +37,13 @@ diagonalWinkernelTwo = np.fliplr(diagonalWinKernelOne)
 winDetectionKernels = [horizontalWinKernel, verticalWinKernel, diagonalWinKernelOne, diagonalWinkernelTwo]
 
 def main():
+    global gameOver
+    global turn
     while(True):
-        global gameOver
         gameOver = False
         draw = False
         waitForInput = False
+        turn = -1
         screen = setup()
         while not gameOver:
             waitForInput = True
@@ -77,7 +79,8 @@ def handleDraw(screen):
     screen.blit(label, (165, 250))
 
 def isDraw():
-    if np.all(board != 0):
+    global gameOver
+    if np.all(board != 0) and gameOver == False:
         return True
     return False
 
