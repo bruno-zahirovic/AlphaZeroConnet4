@@ -28,6 +28,27 @@ class Connect4Model(nn.Module):
         self.resBlockTwoConvTwo = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
                                     stride = 1, bias=False, padding=1 , padding_mode='zeros')
         self.resBlockTwoBNTwo = nn.BatchNorm2d(128)
+        #Res block 3
+        self.resBlockThreeConvOne = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockThreeBNOne = nn.BatchNorm2d(128)
+        self.resBlockThreeConvTwo = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockThreeBNTwo = nn.BatchNorm2d(128)
+        #Res block 4
+        self.resBlockFourConvOne = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockFourBNOne = nn.BatchNorm2d(128)
+        self.resBlockFourConvTwo = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockFourBNTwo = nn.BatchNorm2d(128)
+        #Res block 5
+        self.resBlockFiveConvOne = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockFiveBNOne = nn.BatchNorm2d(128)
+        self.resBlockFiveConvTwo = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, \
+                                    stride = 1, bias=False, padding=1 , padding_mode='zeros')
+        self.resBlockFiveBNTwo = nn.BatchNorm2d(128)
         #value head
         self.valueConv = nn.Conv2d(in_channels=128, out_channels=3, kernel_size=1, \
                                     stride = 1, bias=True)
@@ -59,6 +80,27 @@ class Connect4Model(nn.Module):
         x = F.relu(x)
 
         #Res block 2
+        res = x
+        x = F.relu(self.resBlockThreeBNOne(self.resBlockThreeConvOne(x)))
+        x = F.relu(self.resBlockThreeBNTwo(self.resBlockThreeConvTwo(x)))
+        x += res
+        x = F.relu(x)
+
+        #Res block 3
+        res = x
+        x = F.relu(self.resBlockFourBNOne(self.resBlockFourConvOne(x)))
+        x = F.relu(self.resBlockFourBNTwo(self.resBlockFourConvTwo(x)))
+        x += res
+        x = F.relu(x)
+
+        #Res block 4
+        res = x
+        x = F.relu(self.resBlockFiveBNOne(self.resBlockFiveConvOne(x)))
+        x = F.relu(self.resBlockFiveBNTwo(self.resBlockFiveConvTwo(x)))
+        x += res
+        x = F.relu(x)
+
+        #Res block 5
         res = x
         x = F.relu(self.resBlockTwoBNOne(self.resBlockTwoConvOne(x)))
         x = F.relu(self.resBlockTwoBNTwo(self.resBlockTwoConvTwo(x)))
