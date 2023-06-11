@@ -125,6 +125,7 @@ if __name__ == "__main__":
     from torchinfo import summary
     if torch.cuda.is_available():
         print(torch.zeros(1).cuda())
+        print(torch.cuda.get_device_name(0))
         device = torch.device('cuda')
 
     else:

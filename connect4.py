@@ -163,6 +163,19 @@ class Connect4():
                 actions.append(col)
         return actions
 
+    def updateBoard(self, move):
+        ###Assume the move selected is valid
+        for i in range(self.boardRows):
+            if self.board[i][move] != 0:
+                continue
+            self.board[i][move]  = self.turn
+            if self.turn == -1:
+                color = self.colors["red"]
+            else:
+                color = self.colors["yellow"]
+            pygame.draw.circle(self.screen, color, (move * self.squareSize + (self.squareSize / 2), (self.boardRows - i) * self.squareSize + (self.squareSize / 2)), self.pieceRadius)
+            break
+
 if __name__ == "__main__":
     while (True):
         gameInstance = Connect4()
