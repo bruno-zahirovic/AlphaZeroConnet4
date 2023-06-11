@@ -31,13 +31,13 @@ class Connect4():
                         "black": (0, 0, 0), \
                         "white": (255, 255, 255), \
                         "grey100": (100, 100, 100), \
-                        "grey30": (23, 23, 23), \
+                        "grey23": (23, 23, 23), \
                         "cyan": (0,255,255)}
 
         self.board = np.zeros((self.boardRows, self.boardCols), dtype=np.int8)
         pygame.init()
         self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
-        self.screen.fill(self.colors["grey30"])
+        self.screen.fill(self.colors["grey23"])
         pygame.display.set_caption("Connect4")
         self.drawBoard()
         pygame.display.update()
@@ -61,7 +61,7 @@ class Connect4():
             
 
     def __handleOnMouseMotionEvent(self, event):
-        pygame.draw.rect(self.screen, self.colors["grey30"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
         if self.turn == -1:
             pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
         else:
@@ -69,7 +69,7 @@ class Connect4():
         self.__drawCurrentPlayerString()
 
     def __handleOnMouseClickEvent(self, event):
-        pygame.draw.rect(self.screen, self.colors["grey30"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
         self.__playStep(event)
         if self.turn == -1:
             pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
@@ -160,7 +160,7 @@ class Connect4():
         print("IT'S A DRAW!!")
         myFont = pygame.font.SysFont("monospace", 50, bold=True)
         label = myFont.render("IT'S A DRAW!!", 1, self.colors["green"])
-        pygame.draw.rect(self.screen, self.colors["grey30"], (160, 250, 400, 50))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (160, 250, 400, 50))
         self.screen.blit(label, (165, 250))
 
     def __handleWin(self):
@@ -169,7 +169,7 @@ class Connect4():
         print("WINNER: ", winner)
         myFont = pygame.font.SysFont("monospace", 50, bold=True)
         label = myFont.render("WINNER: " + winner + "!!", 1, color)
-        pygame.draw.rect(self.screen, self.colors["grey30"], (130, 250, 540, 55))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (130, 250, 540, 55))
         self.screen.blit(label, (135, 250))
 
     def __handleWinnerString(self):
