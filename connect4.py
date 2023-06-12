@@ -16,15 +16,15 @@ class Connect4():
         self.boardCols = 7
         self.winCount = 4
         self.squareSize = 100
-        self.pieceRadius = int(self.squareSize/2 - 5)
-        self.windowWidth = (self.boardCols + 1)* self.squareSize 
+        self.pieceRadius = int((self.squareSize / 2) - 5)
+        self.windowWidth = (self.boardCols + 1) * self.squareSize 
         self.windowHeight = (self.boardRows + 2) * self.squareSize
         self.winKernels = [np.array([[1, 1, 1, 1]]), \
                         np.transpose(np.array([[1, 1, 1, 1]])), \
                         np.eye(4, dtype=np.uint8), \
                         np.fliplr(np.eye(4, dtype=np.uint8))]
 
-        self.colors = {"blue": (14, 14, 160),\
+        self.colors = {"blue": (14, 14, 160), \
                         "red": (210, 4, 4), \
                         "green": (0, 255, 0), \
                         "yellow": (224, 217, 2), \
@@ -45,10 +45,10 @@ class Connect4():
     def drawBoard(self):
         for col in range(self.boardCols):
             for row in range(self.boardRows):
-                pygame.draw.rect(self.screen, self.colors["blue"], (col * self.squareSize + (self.squareSize/2), (row + 1) * self.squareSize + (self.squareSize/2), self.squareSize, self.squareSize))
-                pygame.draw.circle(self.screen, self.colors["black"], (col * self.squareSize + 2*(self.squareSize / 2), (row + 1) * self.squareSize + 2*(self.squareSize / 2)), self.pieceRadius)
-        pygame.draw.rect(self.screen, self.colors["blue"], (self.boardCols*self.squareSize + (int(self.squareSize/2.5)), ((self.boardRows + 1) * self.squareSize + (self.squareSize/2)), int(self.squareSize/3), int(self.squareSize/2)))
-        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize/2) - (int(self.squareSize/4)), ((self.boardRows + 1) * self.squareSize + (self.squareSize/2)), int(self.squareSize/3), int(self.squareSize/2)))
+                pygame.draw.rect(self.screen, self.colors["blue"], (col * self.squareSize + (self.squareSize / 2), (row + 1) * self.squareSize + (self.squareSize / 2), self.squareSize, self.squareSize))
+                pygame.draw.circle(self.screen, self.colors["black"], ((col + 1) * self.squareSize, (row + 2) * self.squareSize), self.pieceRadius)
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.boardCols * self.squareSize) + int(self.squareSize / 2.5), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize / 2) - (int(self.squareSize / 4)), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
 
     def dropPiece(self):
         for event in pygame.event.get():
@@ -61,20 +61,20 @@ class Connect4():
             
 
     def __handleOnMouseMotionEvent(self, event):
-        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + (self.squareSize / 2), self.squareSize + (self.squareSize / 2)))
         if self.turn == -1:
-            pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         else:
-            pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         self.__drawCurrentPlayerString()
 
     def __handleOnMouseClickEvent(self, event):
-        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + self.squareSize/2, self.squareSize + self.squareSize/2))
+        pygame.draw.rect(self.screen, self.colors["grey23"], (0, 0, self.windowWidth + (self.squareSize / 2), self.squareSize + (self.squareSize / 2)))
         self.__playStep(event)
         if self.turn == -1:
-            pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         else:
-            pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize/1.2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         self.__drawCurrentPlayerString()
     
     def __drawCurrentPlayerString(self):
@@ -100,7 +100,7 @@ class Connect4():
 
     def __handleSelection(self, event):
         self.selection = int(event.pos[0] / (self.squareSize) + 0.5) - 1
-        self.selection = self.__clampSelection(self.selection, 0, self.boardCols-1)
+        self.selection = self.__clampSelection(self.selection, 0, self.boardCols - 1)
         if not self.__isValidSelection():
             self.selection = -1
 
@@ -108,7 +108,7 @@ class Connect4():
         return max(min(maxVal, val), minVal)
     
     def __isValidSelection(self):
-        if (self.selection < 0 or self.selection > self.boardCols) or (self.board[self.boardRows-1][self.selection]) != 0:
+        if (self.selection < 0 or self.selection >= self.boardCols) or (self.board[self.boardRows - 1][self.selection]) != 0:
             return False
         return True
 
@@ -116,12 +116,12 @@ class Connect4():
         for i in range(self.boardRows):
             if self.board[i][self.selection] != 0:
                 continue
-            self.board[i][self.selection]  = self.turn
+            self.board[i][self.selection] = self.turn
             if self.turn == -1:
                 color = self.colors["red"]
             else:
                 color = self.colors["yellow"]
-            pygame.draw.circle(self.screen, color, (self.selection * self.squareSize + (self.squareSize), (self.boardRows - i) * self.squareSize + (self.squareSize)), self.pieceRadius)
+            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.boardRows-i))), self.pieceRadius)
             break
 
     def __printBoard(self):
@@ -149,7 +149,6 @@ class Connect4():
             self.__handleWin()
         pygame.display.update()
 
-
     def __isDraw(self):
         if self.validActions() == [] and self.gameOver == False:
             return True
@@ -159,9 +158,9 @@ class Connect4():
         print("***GAME OVER***")
         print("IT'S A DRAW!!")
         myFont = pygame.font.SysFont("monospace", 50, bold=True)
-        label = myFont.render("IT'S A DRAW!!", 1, self.colors["green"])
-        pygame.draw.rect(self.screen, self.colors["grey23"], (160, 250, 400, 50))
-        self.screen.blit(label, (165, 250))
+        label = myFont.render("IT'S A DRAW!!", 1, self.colors["white"])
+        pygame.draw.rect(self.screen, self.colors["grey23"], (205, 250, 400, 50))
+        self.screen.blit(label, (210, 250))
 
     def __handleWin(self):
         winner, color = self.__handleWinnerString()
