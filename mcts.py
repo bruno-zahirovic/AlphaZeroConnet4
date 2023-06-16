@@ -120,4 +120,5 @@ class DummyNode(object):
         self.childNumberVisists = collections.defaultdict(float)
 
 
-def UCTSearch(gameState)
+def UCTSearch(gameState):
+    pass
