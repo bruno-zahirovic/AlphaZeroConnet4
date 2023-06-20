@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 torch.manual_seed(0)
 
-from tictactoe import TicTacToe
+#from tictactoe import TicTacToe
 
 
 class ResNet(nn.Module):
@@ -67,7 +67,7 @@ class ResBlock(nn.Module):
         return x
         
 
-def main():
+""" def main():
     gameInstance = TicTacToe()
 
     state = gameInstance.GetInitialState()
@@ -90,7 +90,7 @@ def main():
 
     plt.bar(range(gameInstance.actionSize), policy)
     plt.show()
+ """
 
-
-if __name__ == "__main__":
-    main()
+""" if __name__ == "__main__":
+    main() """

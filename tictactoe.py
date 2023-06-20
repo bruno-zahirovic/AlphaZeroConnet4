@@ -2,6 +2,7 @@ import numpy as np
 import sys, os
 
 from mcts_new import MCTS
+from model_new import ResNet
 
 class TicTacToe:
     def __init__(self):
@@ -66,11 +67,14 @@ def main():
     player = 1
 
     args = {
-        "C": 1.41,  #sqrt(2)
+        "C": 2,  #sqrt(2)
         "num_searches": 1000
     }
 
-    mcts = MCTS(gameInstance, args)
+    model = ResNet(gameInstance, 4, 64)
+    model.eval()
+
+    mcts = MCTS(gameInstance, args, model=model)
     state = gameInstance.GetInitialState()
 
     while True:
