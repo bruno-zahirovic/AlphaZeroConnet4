@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
 
-torch.manual_seed(0)
-
-#from tictactoe import TicTacToe
+from tictactoe import TicTacToe
 
 
 class ResNet(nn.Module):
@@ -67,30 +65,36 @@ class ResBlock(nn.Module):
         return x
         
 
-""" def main():
-    gameInstance = TicTacToe()
+def main():
+    tictactoe = TicTacToe()
 
-    state = gameInstance.GetInitialState()
-    state = gameInstance.GetNextState(state, 2, 1)
-    state = gameInstance.GetNextState(state, 7, -1)
+    state = tictactoe.GetInitialState()
+    state = tictactoe.GetNextState(state, 2, -1)
+    state = tictactoe.GetNextState(state, 4, -1)
+    state = tictactoe.GetNextState(state, 6, 1)
+    state = tictactoe.GetNextState(state, 8, 1)
+
+
+    encoded_state = tictactoe.GetEncodedState(state)
+
+    tensor_state = torch.tensor(encoded_state).unsqueeze(0)
+
+    model = ResNet(tictactoe, 4, 64)
+    model.load_state_dict(torch.load('model_2.pt'))
+    model.eval()
+
+    policy, value = model(tensor_state)
+    value = value.item()
+    policy = torch.softmax(policy, axis=1).squeeze(0).detach().cpu().numpy()
+
+    print(value)
+
     print(state)
+    print(tensor_state)
 
-    encodedState = gameInstance.GetEncodedState(state)
-    print(encodedState)
-
-    tensorState = torch.tensor(encodedState).unsqueeze(0)
-
-    model = ResNet(gameInstance, 4, 64)
-
-    policy, value = model(tensorState) # Returns them in tensor state
-    value = value.item() #Get it out of tensor state
-    policy = torch.softmax(policy, axis=1).squeeze(0).detach().cpu().numpy() #Get it out of tensor state
-
-    print(value, policy)
-
-    plt.bar(range(gameInstance.actionSize), policy)
+    plt.bar(range(tictactoe.actionSize), policy)
     plt.show()
- """
 
-""" if __name__ == "__main__":
-    main() """
+
+if __name__ == "__main__":
+    main()

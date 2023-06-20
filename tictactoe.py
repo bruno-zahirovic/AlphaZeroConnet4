@@ -2,7 +2,7 @@ import numpy as np
 import sys, os
 
 from mcts_new import MCTS
-from model_new import ResNet
+#from model_new import ResNet
 
 class TicTacToe:
     def __init__(self):
@@ -62,7 +62,7 @@ class TicTacToe:
 
 
 
-def main():
+""" def main():
     gameInstance = TicTacToe()
     player = 1
 
@@ -111,4 +111,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main() """

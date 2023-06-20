@@ -1,6 +1,9 @@
 import torch
 import numpy as np
 from tqdm.notebook import trange
+import random
+
+from torch.nn import functional as F
 
 from mcts_new import MCTS
 from tictactoe import TicTacToe
@@ -44,7 +47,30 @@ class AlphaZero:
             player = self.game.GetOpponent(player)
     
     def Train(self, memory):
-        pass
+        random.shuffle(memory)
+        for batchIdx in range(0, len(memory), self.args['batch_size']):
+            sample = memory[batchIdx:min(len(memory) - 1, batchIdx + self.args['batch_size'])]
+
+            state, policyTargets, valueTargets = zip(*sample)
+
+            state, policyTargets, valueTargets = np.array(state), np.array(policyTargets), np.array(valueTargets).reshape(-1, 1)
+
+            state = torch.tensor(state, dtype=torch.float32)
+            policyTargets = torch.tensor(policyTargets, dtype=torch.float32)
+            valueTargets = torch.tensor(valueTargets, dtype=torch.float32)
+
+            outPolicy, outValue = self.model(state)
+
+            policyLoss = F.cross_entropy(outPolicy, policyTargets)
+            valueLoss = F.mse_loss(outValue, valueTargets)
+
+            loss = policyLoss + valueLoss
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+
+
 
     def Learn(self):
         for iteration in range(self.args['num_iterations']):
@@ -72,8 +98,9 @@ def main():
         'C': 2,
         'num_searches': 60,
         'num_iterations': 3,
-        'num_self_play_iterations': 10,
-        'num_epochs': 4
+        'num_self_play_iterations': 500,
+        'num_epochs': 4,
+        'batch_size': 64
     }
 
     alphaZero = AlphaZero(model, optimizer, gameInstance, args)
