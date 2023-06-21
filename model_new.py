@@ -9,8 +9,10 @@ from tictactoe import TicTacToe
 
 
 class ResNet(nn.Module):
-    def __init__(self, game, numResBlocks, numHiddenLayers):
+    def __init__(self, game, numResBlocks, numHiddenLayers, device):
         super().__init__()
+        self.device = device
+
         self.startBlock = nn.Sequential(
             nn.Conv2d(3, numHiddenLayers, kernel_size=3, padding=1),
             nn.BatchNorm2d(numHiddenLayers),
@@ -37,6 +39,8 @@ class ResNet(nn.Module):
             nn.Linear(3 * game.rowCount * game.colCount, 1),
             nn.Tanh()
         )
+
+        self.to(device)
 
     def forward(self, x):
         x = self.startBlock(x)
@@ -79,7 +83,7 @@ def main():
 
     tensor_state = torch.tensor(encoded_state).unsqueeze(0)
 
-    model = ResNet(tictactoe, 4, 64)
+    model = ResNet(tictactoe, 4, 64, device=torch.device("cpu"))
     model.load_state_dict(torch.load('model_2.pt'))
     model.eval()
 

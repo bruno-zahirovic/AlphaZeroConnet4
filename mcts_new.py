@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Node:
-    def __init__(self, game, args, state, parent=None, actionTaken=None, prior=0):
+    def __init__(self, game, args, state, parent=None, actionTaken=None, prior=0, visitCount=0):
         self.game = game
         self.args = args
         self.state = state
@@ -17,7 +17,7 @@ class Node:
 
         self.children = []
 
-        self.visitCount = 0
+        self.visitCount = visitCount
         self.valueSum = 0
 
     def IsFullyExpanded(self):
@@ -100,7 +100,23 @@ class MCTS:
     @torch.no_grad()
     def Search(self, state):
         # Define Root Node
-        root = Node(self.game, self.args, state)
+        root = Node(self.game, self.args, state, visitCount=1)
+
+        policy, _ = self.model(
+            torch.tensor(self.game.GetEncodedState(state), device=self.model.device).unsqueeze(0)
+        )
+
+        policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy()
+        
+        # Add noise to policy to improve exploration
+        policy = (1 - self.args['dirichlet_epsilon']) * policy + \
+        (self.args['dirichlet_epsilon'] * np.random.dirichlet([self.args['dirichlet_alpha']] * self.game.actionSize))
+
+        validMoves = self.game.GetValidMoves(state)
+        policy *= validMoves
+
+        policy /= np.sum(policy)
+        root.Expand(policy)
 
         for search in range(self.args['num_searches']):
             node = root
@@ -115,7 +131,7 @@ class MCTS:
             if not isTerminal:
                 
                 policy, value = self.model(
-                    torch.tensor(self.game.GetEncodedState(node.state)).unsqueeze(0)
+                    torch.tensor(self.game.GetEncodedState(node.state), device=self.model.device).unsqueeze(0)
                 )
                 policy = torch.softmax(policy, axis=1).squeeze(0).cpu().numpy() #squeeze to remove batching
                 validMoves =  self.game.GetValidMoves(node.state)
