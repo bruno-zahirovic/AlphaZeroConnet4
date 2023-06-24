@@ -8,17 +8,18 @@ import sys
 import time
 
 class Connect4():
-    def __init__(self):
+    def __init__(self, displayActive=False):
         self.gameOver = False
         self.isDraw = False
         self.turn = -1
-        self.boardRows = 6
-        self.boardCols = 7
+        self.rowCount = 6
+        self.colCount = 7
+        self.actionSize = self.colCount
         self.winCount = 4
         self.squareSize = 100
         self.pieceRadius = int((self.squareSize / 2) - 5)
-        self.windowWidth = (self.boardCols + 1) * self.squareSize 
-        self.windowHeight = (self.boardRows + 2) * self.squareSize
+        self.windowWidth = (self.colCount + 1) * self.squareSize 
+        self.windowHeight = (self.rowCount + 2) * self.squareSize
         self.winKernels = [np.array([[1, 1, 1, 1]]), \
                         np.transpose(np.array([[1, 1, 1, 1]])), \
                         np.eye(4, dtype=np.uint8), \
@@ -34,21 +35,25 @@ class Connect4():
                         "grey": (29, 29, 27), \
                         "cyan": (0,255,255)}
         self.bgColor = self.colors["grey"]
-        self.board = np.zeros((self.boardRows, self.boardCols), dtype=np.int8)
-        pygame.init()
-        self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
-        self.screen.fill(self.bgColor)
-        pygame.display.set_caption("Connect4")
-        self.drawBoard()
-        pygame.display.update()
+        self.board = np.zeros((self.rowCount, self.colCount))
+        if displayActive:
+            pygame.init()
+            self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
+            self.screen.fill(self.bgColor)
+            pygame.display.set_caption("Connect4")
+            self.drawBoard()
+            pygame.display.update()
+
+    def __repr__(self):
+        return "Connect4"
 
     def drawBoard(self):
-        for col in range(self.boardCols):
-            for row in range(self.boardRows):
+        for col in range(self.colCount):
+            for row in range(self.rowCount):
                 pygame.draw.rect(self.screen, self.colors["blue"], (col * self.squareSize + (self.squareSize / 2), (row + 1) * self.squareSize + (self.squareSize / 2), self.squareSize, self.squareSize))
                 pygame.draw.circle(self.screen, self.bgColor, ((col + 1) * self.squareSize, (row + 2) * self.squareSize), self.pieceRadius)
-        pygame.draw.rect(self.screen, self.colors["blue"], ((self.boardCols * self.squareSize) + int(self.squareSize / 2.5), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
-        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize / 2) - (int(self.squareSize / 4)), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.colCount * self.squareSize) + int(self.squareSize / 2.5), ((self.rowCount + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize / 2) - (int(self.squareSize / 4)), ((self.rowCount + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
 
     def dropPiece(self):
         for event in pygame.event.get():
@@ -100,7 +105,7 @@ class Connect4():
 
     def __handleSelection(self, event):
         self.selection = int(event.pos[0] / (self.squareSize) + 0.5) - 1
-        self.selection = self.__clampSelection(self.selection, 0, self.boardCols - 1)
+        self.selection = self.__clampSelection(self.selection, 0, self.colCount - 1)
         if not self.__isValidSelection():
             self.selection = -1
 
@@ -108,12 +113,12 @@ class Connect4():
         return max(min(maxVal, val), minVal)
     
     def __isValidSelection(self):
-        if (self.selection < 0 or self.selection >= self.boardCols) or (self.board[self.boardRows - 1][self.selection]) != 0:
+        if (self.selection < 0 or self.selection >= self.colCount) or (self.board[self.rowCount - 1][self.selection]) != 0:
             return False
         return True
 
     def __updateBoard(self):
-        for i in range(self.boardRows):
+        for i in range(self.rowCount):
             if self.board[i][self.selection] != 0:
                 continue
             self.board[i][self.selection] = self.turn
@@ -121,7 +126,7 @@ class Connect4():
                 color = self.colors["red"]
             else:
                 color = self.colors["yellow"]
-            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.boardRows-i))), self.pieceRadius)
+            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.rowCount-i))), self.pieceRadius)
             break
 
     def __printBoard(self):
@@ -191,14 +196,14 @@ class Connect4():
 
     def validActions(self):
         actions = []
-        for col in range(self.boardCols):
-            if self.board[self.boardRows-1][col] == 0:
+        for col in range(self.colCount):
+            if self.board[self.rowCount-1][col] == 0:
                 actions.append(col)
         return actions
 
     def updateBoard(self, move):
         ###Assume the move selected is valid
-        for i in range(self.boardRows):
+        for i in range(self.rowCount):
             if self.board[i][move] != 0:
                 continue
             self.board[i][move]  = self.turn
@@ -206,12 +211,66 @@ class Connect4():
                 color = self.colors["red"]
             else:
                 color = self.colors["yellow"]
-            pygame.draw.circle(self.screen, color, (move * self.squareSize + (self.squareSize / 2), (self.boardRows - i) * self.squareSize + (self.squareSize / 2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, color, (move * self.squareSize + (self.squareSize / 2), (self.rowCount - i) * self.squareSize + (self.squareSize / 2)), self.pieceRadius)
             break
+
+    def GetInitialState(self):
+        return np.zeros((self.rowCount, self.colCount))
+    
+    def GetNextState(self, state, action, player):
+        row = np.max(np.where(state[:, action] == 0))
+        col = action
+        state[row, col] = player
+        self.board = state
+        return state
+
+    def GetValidMoves(self, state):
+        return (state[0] == 0).astype(np.uint8)
+    
+    def CheckWin(self, state, action):
+        if action == None:
+            return False
+        
+        row = np.min(np.where(state[:, action] != 0))
+        col = action
+        player = state[row][col]
+
+        tempBoard = self.board.copy()
+        tempBoard[row][col] = player
+
+        for kernel in self.winKernels:
+            if (convolve2d(tempBoard == player, kernel, mode = "valid") == self.winCount).any():
+                return True
+        return False
+    
+    def GetValueAndTerminated(self,state, action):
+        if self.CheckWin(state, action):
+            return 1, True
+        if np.sum(self.GetValidMoves(state)) == 0:
+            return 0, True
+        return 0, False
+    
+    def GetOpponent(self, player):
+        return -player
+    
+    def GetOpponentValue(self, value):
+        return -value
+    
+    def ChangePerspective(self, state, player):
+        return state * player
+    
+    def GetEncodedState(self, state):
+        encodedState = np.stack(
+            (state == -1, state == 0, state == 1)
+        ).astype(np.float32)
+
+        return encodedState
+    
+
 
 if __name__ == "__main__":
     while (True):
-        gameInstance = Connect4()
+        gameInstance = Connect4(displayActive=True)
         while not gameInstance.gameOver:
             gameInstance.dropPiece()
             pygame.display.update()

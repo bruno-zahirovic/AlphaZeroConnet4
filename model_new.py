@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from tictactoe import TicTacToe
-
+from connect4 import Connect4
 
 class ResNet(nn.Module):
     def __init__(self, game, numResBlocks, numHiddenLayers, device):
@@ -70,7 +70,9 @@ class ResBlock(nn.Module):
         
 
 def main():
-    tictactoe = TicTacToe()
+    tictactoe = Connect4()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     state = tictactoe.GetInitialState()
     state = tictactoe.GetNextState(state, 2, -1)
@@ -81,10 +83,10 @@ def main():
 
     encoded_state = tictactoe.GetEncodedState(state)
 
-    tensor_state = torch.tensor(encoded_state).unsqueeze(0)
+    tensor_state = torch.tensor(encoded_state, device=device).unsqueeze(0)
 
-    model = ResNet(tictactoe, 4, 64, device=torch.device("cpu"))
-    model.load_state_dict(torch.load('model_2.pt'))
+    model = ResNet(tictactoe, 4, 64, device=device)
+    model.load_state_dict(torch.load('model_2_Connect4.pt', map_location=device))
     model.eval()
 
     policy, value = model(tensor_state)

@@ -10,6 +10,9 @@ class TicTacToe:
         self.colCount = 3
         self.actionSize = self.rowCount * self.colCount
 
+    def __repr__(self):
+        return "TicTacToe"
+
     def GetInitialState(self):
         return np.zeros((self.rowCount, self.colCount))
     
