@@ -46,7 +46,45 @@ class Connect4():
 
     def __repr__(self):
         return "Connect4"
+class Connect4():
+    def __init__(self, displayActive=False):
+        self.gameOver = False
+        self.isDraw = False
+        self.turn = -1
+        self.rowCount = 6
+        self.colCount = 7
+        self.actionSize = self.colCount
+        self.winCount = 4
+        self.squareSize = 100
+        self.pieceRadius = int((self.squareSize / 2) - 5)
+        self.windowWidth = (self.colCount + 1) * self.squareSize 
+        self.windowHeight = (self.rowCount + 2) * self.squareSize
+        self.winKernels = [np.array([[1, 1, 1, 1]]), \
+                        np.transpose(np.array([[1, 1, 1, 1]])), \
+                        np.eye(4, dtype=np.uint8), \
+                        np.fliplr(np.eye(4, dtype=np.uint8))]
 
+        self.colors = { "blue": (47, 110, 240), \
+                        "red": (204, 20, 29), \
+                        "green": (0, 255, 0), \
+                        "yellow": (255, 255, 117), \
+                        "black": (23, 23, 23), \
+                        "white": (245, 243, 245), \
+                        "grey100": (100, 100, 100), \
+                        "grey": (29, 29, 27), \
+                        "cyan": (0,255,255)}
+        self.bgColor = self.colors["grey"]
+        self.board = np.zeros((self.rowCount, self.colCount))
+        if displayActive:
+            pygame.init()
+            self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
+            self.screen.fill(self.bgColor)
+            pygame.display.set_caption("Connect4")
+            self.drawBoard()
+            pygame.display.update()
+
+    def __repr__(self):
+        return "Connect4"
     def drawBoard(self):
         for col in range(self.colCount):
             for row in range(self.rowCount):
@@ -219,7 +257,7 @@ class Connect4():
     
     def GetNextState(self, state, action, player):
         row = np.max(np.where(state[:, action] == 0))
-        col = action
+        col = action    
         state[row, col] = player
         self.board = state
         return state
@@ -232,14 +270,11 @@ class Connect4():
             return False
         
         row = np.min(np.where(state[:, action] != 0))
-        col = action
-        player = state[row][col]
-
-        tempBoard = self.board.copy()
-        tempBoard[row][col] = player
-
+        column = action
+        player = state[row][column]
+        
         for kernel in self.winKernels:
-            if (convolve2d(tempBoard == player, kernel, mode = "valid") == self.winCount).any():
+            if (convolve2d(state == player, kernel, mode = "valid") == self.winCount).any():
                 return True
         return False
     
@@ -263,6 +298,9 @@ class Connect4():
         encodedState = np.stack(
             (state == -1, state == 0, state == 1)
         ).astype(np.float32)
+
+        if len(state.shape) == 3:
+            encodedState = np.swapaxes(encodedState, 0, 1)
 
         return encodedState
     

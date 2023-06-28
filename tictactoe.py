@@ -61,6 +61,9 @@ class TicTacToe:
             (state == -1, state == 0, state == 1)
         ).astype(np.float32)
 
+        if len(state.shape) == 3:
+            encodedState = np.swapaxes(encodedState, 0, 1)
+
         return encodedState
 
 

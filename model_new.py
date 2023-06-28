@@ -86,7 +86,7 @@ def main():
     tensor_state = torch.tensor(encoded_state, device=device).unsqueeze(0)
 
     model = ResNet(tictactoe, 4, 64, device=device)
-    model.load_state_dict(torch.load('model_2_Connect4.pt', map_location=device))
+    model.load_state_dict(torch.load('model_13_Connect4.pt', map_location=device))
     model.eval()
 
     policy, value = model(tensor_state)

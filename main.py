@@ -14,8 +14,7 @@ def main():
 
     args = {
         "C": 2,
-        "num_searches": 100,
-        "temperature": 1.25,
+        "num_searches": 600,
         "dirichlet_epsilon": 0.0,
         "dirichlet_alpha": 0.3
     }
@@ -23,6 +22,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = ResNet(gameInstance, 9, 128, device=device)
+    model.load_state_dict(torch.load('model_6_Connect4.pt', map_location=device))
     model.eval()
 
     mcts = MCTS(gameInstance, args, model=model)
@@ -34,6 +34,7 @@ def main():
         if player == 1:
             validMoves = gameInstance.GetValidMoves(state)
             print("Valid Moves", [i for i in range(gameInstance.actionSize) if validMoves[i] == 1])
+            #print("Encoded:", gameInstance.GetEncodedState(state))
             action = int(input(f"{player}:"))
 
             if validMoves[action] == 0:

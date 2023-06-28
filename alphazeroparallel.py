@@ -5,50 +5,62 @@ import random
 
 from torch.nn import functional as F
 
-from mcts_new import MCTS
+from mctsparallel import MCTSParallel
 from tictactoe import TicTacToe
 from model_new import ResNet
 from connect4 import Connect4
 
-class AlphaZero:
+
+class AlphaZeroParallel:
     def __init__(self, model, optimizer, game, args):
         self.model = model
         self.optimizer = optimizer
         self.game = game
         self.args = args
 
-        self.mcts = MCTS(self.game, self.args, self.model)
+        self.mcts = MCTSParallel(game, args, model)
 
     def SelfPlay(self):
-        memory = []
+        returnMemory = []
         player = 1
-        state = self.game.GetInitialState()
+        selfPlayGames = [SelfPlayGame(self.game) for spg in range(self.args['num_parallel_games'])]
 
-        while True:
-            neutralState = self.game.ChangePerspective(state, player)
-            actionProbs = self.mcts.Search(neutralState)
+        while len(selfPlayGames) > 0:
+            states = np.stack([spg.state for spg in selfPlayGames])
 
-            memory.append((neutralState, actionProbs, player))
+            neutralStates = self.game.ChangePerspective(states, player)
+            self.mcts.Search(neutralStates, selfPlayGames)
 
-            temperatureActionProbs = actionProbs ** (1 / self.args["temperature"]) #exploitation/exploration
-            temperatureActionProbs /= np.sum(temperatureActionProbs)
+            for i in range(len(selfPlayGames))[::-1]:
+                spg = selfPlayGames[i]
 
-            action = np.random.choice(self.game.actionSize, p=temperatureActionProbs)
-            state = self.game.GetNextState(state, action, player)
+                actionProbs = np.zeros(self.game.actionSize)
+                for child in spg.root.children:
+                    actionProbs[child.actionTaken] = child.visitCount
+                actionProbs /= np.sum(actionProbs)
 
-            value, isTerminal = self.game.GetValueAndTerminated(state, action)
+                spg.memory.append((spg.root.state, actionProbs, player))
 
-            if isTerminal:
-                returnMemory = []
-                for histNeutralState, histActionProbs, histPlayer in memory:
-                    histOutcome = value if histPlayer == player else self.game.GetOpponentValue(value)
-                    returnMemory.append((
-                        self.game.GetEncodedState(histNeutralState), 
-                        histActionProbs,
-                        histOutcome
-                    ))
-                return returnMemory
+                temperatureActionProbs = actionProbs ** (1 / self.args['temperature']) #exploitation/exploration
+                temperatureActionProbs /= np.sum(temperatureActionProbs)
+
+                action = np.random.choice(self.game.actionSize, p=temperatureActionProbs)
+                spg.state = self.game.GetNextState(spg.state, action, player)
+
+                value, isTerminal = self.game.GetValueAndTerminated(spg.state, action)
+
+                if isTerminal:
+                    for histNeutralState, histActionProbs, histPlayer in spg.memory:
+                        histOutcome = value if histPlayer == player else self.game.GetOpponentValue(value)
+                        returnMemory.append((
+                            self.game.GetEncodedState(histNeutralState), 
+                            histActionProbs,
+                            histOutcome
+                        ))
+                    del selfPlayGames[i]
+
             player = self.game.GetOpponent(player)
+        return returnMemory
     
     def Train(self, memory):
         random.shuffle(memory)
@@ -81,7 +93,7 @@ class AlphaZero:
             memory = []
 
             self.model.eval()
-            for selfPlayIter in tnrange(self.args['num_self_play_iterations']):
+            for selfPlayIter in tnrange(self.args['num_self_play_iterations'] // self.args["num_parallel_games"]):
                 memory += self.SelfPlay()
 
             self.model.train()
@@ -90,6 +102,14 @@ class AlphaZero:
 
             torch.save(self.model.state_dict(), f"model_{iteration}_{self.game}.pt")
             torch.save(self.optimizer.state_dict(), f"optimizer_{iteration}_{self.game}.pt")
+
+
+class SelfPlayGame:
+    def __init__(self, game):
+        self.state = game.GetInitialState()
+        self.memory = []
+        self.root = None
+        self.node = None
 
 
 def main():
@@ -114,9 +134,10 @@ def main():
         "dirichlet_alpha": 0.3
     }
 
-    alphaZero = AlphaZero(model, optimizer, gameInstance, args)
-    alphaZero.Learn()
+    alphaZeroParallel = AlphaZeroParallel(model, optimizer, gameInstance, args)
+    alphaZeroParallel.Learn()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
 
