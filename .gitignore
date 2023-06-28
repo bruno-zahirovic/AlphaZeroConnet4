@@ -1,2 +1,3 @@
 *.pt
 *.pyc
+!model_7_Connect4_*.pt
