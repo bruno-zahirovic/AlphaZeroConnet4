@@ -32,7 +32,7 @@ class MCTSParallel:
             spgPolicy = policy[i]
             validMoves = self.game.GetValidMoves(states[i])
             spgPolicy *= validMoves
-            spgPolicy /= np.sum(spgPolicy)
+            #spgPolicy /= np.sum(spgPolicy)
             spg.root = Node(self.game, self.args, states[i], visitCount=1)
             spg.root.Expand(spgPolicy)
 

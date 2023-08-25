@@ -124,10 +124,10 @@ def main():
     args = {
         'C': 2,
         'num_searches': 600,
-        'num_iterations': 8,
+        'num_iterations': 14,
         'num_self_play_iterations': 500,
         'num_parallel_games': 100,
-        'num_epochs': 4,
+        'num_epochs': 10,
         'batch_size': 128,
         "temperature": 1.25,
         "dirichlet_epsilon": 0.25,

@@ -96,7 +96,7 @@ class Connect4():
         self.__handleSelection(event)
         if self.selection != -1:
             self.__updateBoard()
-            self.__printBoard()
+            self.PrintBoard()
             self.CheckForGameOver()
             if self.gameOver == True:
                 self.__handleGameOver()
@@ -133,8 +133,8 @@ class Connect4():
             pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.rowCount-i))), self.pieceRadius)
             break
 
-    def __printBoard(self):
-        print(np.flip(self.board, 0))
+    def PrintBoard(self):
+        print(self.board, 0)
 
     def CheckForGameOver(self):
         for kernel in self.winKernels:

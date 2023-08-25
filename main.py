@@ -23,7 +23,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = ResNet(gameInstance, 9, 128, device=device)
-    model.load_state_dict(torch.load('model_7_Connect4_best_trained.pt', map_location=device))
+    model.load_state_dict(torch.load('model_10_Connect4.pt', map_location=device))
     model.eval()
 
     mcts = MCTS(gameInstance, args, model=model)
@@ -79,6 +79,7 @@ def main():
 
                 #gameInstance.board = gameInstance.GetNextState(gameInstance.board, action, gameInstance.turn)
                 gameInstance.UpdateBoard(action)
+                gameInstance.PrintBoard()
 
                 isTerminated = gameInstance.CheckForGameOver()
                 if isTerminated:
