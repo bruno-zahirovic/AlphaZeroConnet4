@@ -7,18 +7,22 @@ from scipy.signal import convolve2d
 import sys
 import time
 
+AI_PLAY = True
+
 class Connect4():
-    def __init__(self):
+    def __init__(self, displayActive=False):
         self.gameOver = False
         self.isDraw = False
         self.turn = -1
-        self.boardRows = 6
-        self.boardCols = 7
+        self.rowCount = 6
+        self.colCount = 7
+        self.actionSize = self.colCount
         self.winCount = 4
         self.squareSize = 100
+        self.selection = 0
         self.pieceRadius = int((self.squareSize / 2) - 5)
-        self.windowWidth = (self.boardCols + 1) * self.squareSize 
-        self.windowHeight = (self.boardRows + 2) * self.squareSize
+        self.windowWidth = (self.colCount + 1) * self.squareSize 
+        self.windowHeight = (self.rowCount + 2) * self.squareSize
         self.winKernels = [np.array([[1, 1, 1, 1]]), \
                         np.transpose(np.array([[1, 1, 1, 1]])), \
                         np.eye(4, dtype=np.uint8), \
@@ -34,35 +38,40 @@ class Connect4():
                         "grey": (29, 29, 27), \
                         "cyan": (0,255,255)}
         self.bgColor = self.colors["grey"]
-        self.board = np.zeros((self.boardRows, self.boardCols), dtype=np.int8)
-        pygame.init()
-        self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
-        self.screen.fill(self.bgColor)
-        pygame.display.set_caption("Connect4")
-        self.drawBoard()
-        pygame.display.update()
+        self.board = np.zeros((self.rowCount, self.colCount))
+        if displayActive:
+            pygame.init()
+            self.screen = pygame.display.set_mode((self.windowWidth, self.windowHeight))
+            self.screen.fill(self.bgColor)
+            pygame.display.set_caption("Connect4")
+            self.DrawBoard()
+            pygame.display.update()
 
-    def drawBoard(self):
-        for col in range(self.boardCols):
-            for row in range(self.boardRows):
+    def __repr__(self):
+        return "Connect4"
+    
+    def DrawBoard(self):
+        for col in range(self.colCount):
+            for row in range(self.rowCount):
                 pygame.draw.rect(self.screen, self.colors["blue"], (col * self.squareSize + (self.squareSize / 2), (row + 1) * self.squareSize + (self.squareSize / 2), self.squareSize, self.squareSize))
                 pygame.draw.circle(self.screen, self.bgColor, ((col + 1) * self.squareSize, (row + 2) * self.squareSize), self.pieceRadius)
-        pygame.draw.rect(self.screen, self.colors["blue"], ((self.boardCols * self.squareSize) + int(self.squareSize / 2.5), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
-        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize / 2) - (int(self.squareSize / 4)), ((self.boardRows + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.colCount * self.squareSize) + int(self.squareSize / 2.5), ((self.rowCount + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
+        pygame.draw.rect(self.screen, self.colors["blue"], ((self.squareSize / 2) - (int(self.squareSize / 4)), ((self.rowCount + 1) * self.squareSize + (self.squareSize / 2)), int(self.squareSize / 3), int(self.squareSize / 2)))
 
-    def dropPiece(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-            elif event.type == pygame.MOUSEMOTION:
-                self.__handleOnMouseMotionEvent(event)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.__handleOnMouseClickEvent(event)
-            
+    def DropPiece(self):
+        if self.turn == 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEMOTION:
+                    self.__handleOnMouseMotionEvent(event)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    self.__handleOnMouseClickEvent(event)
+        
 
     def __handleOnMouseMotionEvent(self, event):
         pygame.draw.rect(self.screen, self.bgColor, (0, 0, self.windowWidth + (self.squareSize / 2), self.squareSize + (self.squareSize / 2)))
-        if self.turn == -1:
+        if self.turn == 1:
             pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         else:
             pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
@@ -71,7 +80,7 @@ class Connect4():
     def __handleOnMouseClickEvent(self, event):
         pygame.draw.rect(self.screen, self.bgColor, (0, 0, self.windowWidth + (self.squareSize / 2), self.squareSize + (self.squareSize / 2)))
         self.__playStep(event)
-        if self.turn == -1:
+        if self.turn == 1:
             pygame.draw.circle(self.screen, self.colors["red"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
         else:
             pygame.draw.circle(self.screen, self.colors["yellow"], (event.pos[0], int(self.squareSize / 1.2)), self.pieceRadius)
@@ -87,20 +96,20 @@ class Connect4():
         self.__handleSelection(event)
         if self.selection != -1:
             self.__updateBoard()
-            self.__printBoard()
-            self.__checkForGameOver()
+            self.PrintBoard()
+            self.CheckForGameOver()
             if self.gameOver == True:
                 self.__handleGameOver()
             self.__handleTurn()
         else:
             if self.__isDraw():
-                self.__checkForGameOver()
+                self.CheckForGameOver()
             print("INVALID MOVE, CHOOSE AGAIN!")
         pygame.display.update()
 
     def __handleSelection(self, event):
         self.selection = int(event.pos[0] / (self.squareSize) + 0.5) - 1
-        self.selection = self.__clampSelection(self.selection, 0, self.boardCols - 1)
+        self.selection = self.__clampSelection(self.selection, 0, self.colCount - 1)
         if not self.__isValidSelection():
             self.selection = -1
 
@@ -108,26 +117,26 @@ class Connect4():
         return max(min(maxVal, val), minVal)
     
     def __isValidSelection(self):
-        if (self.selection < 0 or self.selection >= self.boardCols) or (self.board[self.boardRows - 1][self.selection]) != 0:
+        if (self.selection < 0 or self.selection >= self.colCount) or (self.board[0][self.selection]) != 0:
             return False
         return True
 
     def __updateBoard(self):
-        for i in range(self.boardRows):
-            if self.board[i][self.selection] != 0:
+        for i in range(self.rowCount):
+            if self.board[self.rowCount - 1 - i][self.selection] != 0:
                 continue
-            self.board[i][self.selection] = self.turn
-            if self.turn == -1:
+            self.board[self.rowCount - 1 - i][self.selection] = self.turn
+            if self.turn == 1:
                 color = self.colors["red"]
             else:
                 color = self.colors["yellow"]
-            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.boardRows-i))), self.pieceRadius)
+            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + self.selection)),self.squareSize * (1 + (self.rowCount-i))), self.pieceRadius)
             break
 
-    def __printBoard(self):
-        print(np.flip(self.board, 0))
+    def PrintBoard(self):
+        print(self.board, 0)
 
-    def __checkForGameOver(self):
+    def CheckForGameOver(self):
         for kernel in self.winKernels:
             if (convolve2d(self.board == self.turn, kernel, mode = "valid") == 4).any():
                 self.gameOver = True
@@ -135,6 +144,7 @@ class Connect4():
         if self.__isDraw():
             self.isDraw = True
             self.gameOver = True
+        return self.gameOver
 
     def __handleTurn(self):
         if self.turn == -1:
@@ -146,11 +156,11 @@ class Connect4():
         if self.isDraw:
             self.__handleDraw()
         else:
-            self.__handleWin()
+            self.HandleWin()
         pygame.display.update()
 
     def __isDraw(self):
-        if self.validActions() == [] and self.gameOver == False:
+        if self.ValidActions() == [] and self.gameOver == False:
             return True
         return False
 
@@ -162,7 +172,7 @@ class Connect4():
         pygame.draw.rect(self.screen, self.bgColor, (205, 250, 400, 50))
         self.screen.blit(label, (210, 250))
 
-    def __handleWin(self):
+    def HandleWin(self):
         winner, color = self.__handleWinnerString()
         print("***GAME OVER***")
         print("WINNER: ", winner)
@@ -172,48 +182,109 @@ class Connect4():
         self.screen.blit(label, (135, 250))
 
     def __handleWinnerString(self):
-        if self.turn == -1:
+        if self.turn == 1:
             playerString = "PLAYER 1"
             color = self.colors["red"]
         else:
-            playerString ="PLAYER 2"
+            if not AI_PLAY:
+                playerString ="PLAYER 2"
+            else:
+                playerString ="AlphaZero"
             color = self.colors["yellow"]
         return playerString, color
     
     def __handleCurrentPlayerString(self):
-        if self.turn == -1:
+        if self.turn == 1:
             playerString = "PLAYER 1"
             color = self.colors["red"]
         else:
-            playerString = "PLAYER 2"
+            if not AI_PLAY:
+                playerString = "PLAYER 2"
+            else:
+                playerString = "AlphaZero is thinking.."
             color = self.colors["yellow"]
         return playerString, color
 
-    def validActions(self):
+    def ValidActions(self):
         actions = []
-        for col in range(self.boardCols):
-            if self.board[self.boardRows-1][col] == 0:
+        for col in range(self.colCount):
+            if self.board[0][col] == 0:
                 actions.append(col)
         return actions
 
-    def updateBoard(self, move):
+    def UpdateBoard(self, move):
         ###Assume the move selected is valid
-        for i in range(self.boardRows):
-            if self.board[i][move] != 0:
+        for i in range(self.rowCount):
+            if self.board[self.rowCount - 1 - i][move] != 0:
                 continue
-            self.board[i][move]  = self.turn
-            if self.turn == -1:
+            self.board[self.rowCount - 1 - i][move]  = self.turn
+            if self.turn == 1:
                 color = self.colors["red"]
             else:
                 color = self.colors["yellow"]
-            pygame.draw.circle(self.screen, color, (move * self.squareSize + (self.squareSize / 2), (self.boardRows - i) * self.squareSize + (self.squareSize / 2)), self.pieceRadius)
+            pygame.draw.circle(self.screen, color, ((self.squareSize * (1 + move)),self.squareSize * (1 + (self.rowCount-i))), self.pieceRadius)
+            pygame.display.update()
             break
+
+    def GetInitialState(self):
+        return np.zeros((self.rowCount, self.colCount))
+    
+    def GetNextState(self, state, action, player):
+        row = np.max(np.where(state[:, action] == 0))
+        col = action    
+        state[row][col] = player
+        self.board = state
+        return state
+
+    def GetValidMoves(self, state):
+        return (state[0] == 0).astype(np.uint8)
+    
+    def CheckWin(self, state, action):
+        if action == None:
+            return False
+        
+        row = np.min(np.where(state[:, action] != 0))
+        column = action
+        player = state[row][column]
+        
+        for kernel in self.winKernels:
+            if (convolve2d(state == player, kernel, mode = "valid") == self.winCount).any():
+                return True
+        return False
+    
+    def GetValueAndTerminated(self,state, action):
+        if self.CheckWin(state, action):
+            return 1, True
+        if np.sum(self.GetValidMoves(state)) == 0:
+            return 0, True
+        return 0, False
+    
+    def GetOpponent(self, player):
+        return -player
+    
+    def GetOpponentValue(self, value):
+        return -value
+    
+    def ChangePerspective(self, state, player):
+        return state * player
+    
+    def GetEncodedState(self, state):
+        encodedState = np.stack(
+            (state == -1, state == 0, state == 1)
+        ).astype(np.float32)
+
+        if len(state.shape) == 3:
+            encodedState = np.swapaxes(encodedState, 0, 1)
+
+        return encodedState
+    
+
 
 if __name__ == "__main__":
     while (True):
-        gameInstance = Connect4()
+        gameInstance = Connect4(displayActive=True)
         while not gameInstance.gameOver:
-            gameInstance.dropPiece()
+            gameInstance.DropPiece()
             pygame.display.update()
         pygame.time.wait(3000)
         pygame.quit()

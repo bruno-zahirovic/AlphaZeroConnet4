@@ -2,12 +2,16 @@ import numpy as np
 import sys, os
 
 from mcts_new import MCTS
+#from model_new import ResNet
 
 class TicTacToe:
     def __init__(self):
         self.rowCount = 3
         self.colCount = 3
         self.actionSize = self.rowCount * self.colCount
+
+    def __repr__(self):
+        return "TicTacToe"
 
     def GetInitialState(self):
         return np.zeros((self.rowCount, self.colCount))
@@ -52,19 +56,31 @@ class TicTacToe:
     def ChangePerspective(self, state, player):
         return state * player
     
+    def GetEncodedState(self, state):
+        encodedState = np.stack(
+            (state == -1, state == 0, state == 1)
+        ).astype(np.float32)
+
+        if len(state.shape) == 3:
+            encodedState = np.swapaxes(encodedState, 0, 1)
+
+        return encodedState
 
 
 
-def main():
+""" def main():
     gameInstance = TicTacToe()
     player = 1
 
     args = {
-        "C": 1.41,  #sqrt(2)
+        "C": 2,  #sqrt(2)
         "num_searches": 1000
     }
 
-    mcts = MCTS(gameInstance, args)
+    model = ResNet(gameInstance, 4, 64)
+    model.eval()
+
+    mcts = MCTS(gameInstance, args, model=model)
     state = gameInstance.GetInitialState()
 
     while True:
@@ -101,4 +117,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main() """
